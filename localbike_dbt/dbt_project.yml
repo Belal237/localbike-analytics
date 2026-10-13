@@ -1,0 +1,30 @@
+name: "localbike"
+version: "1.0.0"
+config-version: 2
+profile: "localbike"
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "dbt_modules"
+
+vars:
+  localbike_start_date: "2016-01-01"
+  localbike_end_date: "2018-12-31"
+
+models:
+  localbike:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts

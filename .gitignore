@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# dbt
+localbike_dbt/.venv/
+localbike_dbt/target/
+localbike_dbt/dbt_packages/
+localbike_dbt/dbt_modules/
+localbike_dbt/*.duckdb
+localbike_dbt/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
