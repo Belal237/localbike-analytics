@@ -20,3 +20,8 @@ Thumbs.db
 
 # IDE
 .vscode/
+
+# Local project artifacts
+*.pdf
+*.zip
+localbike_dbt/.user.yml
