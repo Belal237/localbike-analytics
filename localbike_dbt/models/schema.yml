@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Clean customer master data."
+    columns:
+      - name: customer_id
+        description: "Customer unique identifier."
+        tests: [not_null, unique]
+      - name: email
+        tests:
+          - not_null
+
+  - name: stg_orders
+    description: "Clean order data with normalized date fields."
+    columns:
+      - name: order_id
+        description: "Order unique identifier."
+        tests: [not_null, unique]
+      - name: customer_id
+        description: "Customer associated with the order."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_status
+        description: "Order lifecycle status."
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+
+  - name: stg_products
+    description: "Product catalog data."
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+      - name: list_price
+        tests:
+          - not_null
+
+  - name: fct_sales
+    description: "Transactional sales fact table used for revenue and margin analysis."
+    columns:
+      - name: order_id
+        tests: [not_null]
+      - name: item_id
+        tests: [not_null]
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: net_revenue
+        description: "Revenue after discount."
+        tests:
+          - not_null
