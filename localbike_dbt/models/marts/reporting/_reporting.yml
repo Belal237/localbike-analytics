@@ -1,0 +1,95 @@
+version: 2
+
+models:
+  - name: rpt_store_monthly_sales
+    description: >
+      Monthly KPIs per store, completed orders only. Note that completed orders stop at the
+      end of March 2018 in the dataset, so 2018 is a partial year.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [store_id, order_month]
+    columns:
+      - name: order_month
+        description: First day of the month.
+        data_tests: [not_null]
+      - name: store_id
+        data_tests: [not_null]
+      - name: store_name
+        data_tests: [not_null]
+      - name: orders_count
+        description: Number of completed orders.
+        data_tests: [not_null, non_negative]
+      - name: customers_count
+        description: Distinct customers who completed an order that month.
+      - name: units_sold
+      - name: gross_revenue
+        description: Revenue before discount, USD.
+      - name: discount_amount
+        description: Discount given, USD.
+      - name: net_revenue
+        description: Revenue after discount, USD.
+        data_tests: [not_null, non_negative]
+      - name: late_shipments_count
+        description: Completed orders shipped after the required date.
+      - name: avg_order_value
+        description: net_revenue / orders_count.
+      - name: avg_discount_rate
+        description: discount_amount / gross_revenue, weighted by amount.
+      - name: late_shipment_rate
+        description: Share of the month's orders shipped after the promised date.
+
+  - name: rpt_product_performance
+    description: >
+      One row per product with completed sales, discount, open-order demand and current stock.
+      Products that never sold are kept (revenue = 0) since unsold stock is part of the analysis.
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: product_name
+      - name: brand_name
+      - name: category_name
+      - name: model_year
+      - name: list_price
+      - name: units_sold
+        data_tests: [not_null, non_negative]
+      - name: orders_count
+        description: Completed orders containing the product.
+      - name: gross_revenue
+      - name: discount_amount
+      - name: net_revenue
+        data_tests: [not_null, non_negative]
+      - name: avg_discount_rate
+        description: Weighted average discount on the product. Null if never sold.
+      - name: last_sale_date
+        description: Date of the most recent completed order containing the product.
+      - name: units_in_open_orders
+        description: Units in pending or processing orders, i.e. demand not yet invoiced.
+      - name: stock_quantity
+        description: Units in stock across the three stores (snapshot).
+        data_tests: [not_null, non_negative]
+      - name: stock_value_at_list_price
+        description: stock_quantity * list_price. An upper bound, real value depends on discounts.
+      - name: revenue_rank
+        description: 1 = product with the highest net revenue.
+
+  - name: rpt_staff_performance
+    description: Order volume, revenue and rejection rate per staff member over the whole period.
+    columns:
+      - name: staff_id
+        data_tests: [unique, not_null]
+      - name: staff_name
+      - name: store_id
+      - name: store_name
+      - name: manager_name
+      - name: is_active
+      - name: orders_handled
+        description: All orders taken, whatever their status.
+      - name: completed_orders
+      - name: rejected_orders
+      - name: rejection_rate
+        description: rejected_orders / orders_handled.
+      - name: net_revenue
+        description: Net revenue of completed orders, USD.
+        data_tests: [not_null, non_negative]
+      - name: avg_order_value

@@ -1,0 +1,196 @@
+version: 2
+
+models:
+  - name: fct_sales
+    description: >
+      Sales fact table at order line level. Includes every order status, so filter on
+      `is_completed` to get invoiced revenue. Product and store names are denormalised
+      so the table can be plugged straight into a BI tool.
+    columns:
+      - name: sales_line_id
+        description: Surrogate key, order_id and item_id joined with a dash.
+        data_tests: [unique, not_null]
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
+      - name: item_id
+        description: Line number inside the order.
+      - name: order_date
+        description: Date the order was placed.
+        data_tests: [not_null]
+      - name: order_month
+        description: First day of the order month, handy for monthly charts.
+      - name: order_status
+        description: "1 Pending, 2 Processing, 3 Rejected, 4 Completed."
+      - name: order_status_label
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Pending', 'Processing', 'Rejected', 'Completed']
+      - name: is_completed
+        description: True when the order is completed (status 4). Only these count as revenue.
+        data_tests: [not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: staff_id
+        description: Staff member who took the order.
+      - name: store_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
+      - name: store_name
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: product_name
+      - name: brand_name
+      - name: category_name
+        data_tests: [not_null]
+      - name: model_year
+      - name: quantity
+        description: Units sold on the line.
+        data_tests: [not_null, non_negative]
+      - name: list_price
+        description: Unit list price before discount, in USD.
+      - name: discount_rate
+        description: Discount applied to the line, between 0 and 1.
+      - name: gross_revenue
+        description: quantity * list_price, in USD.
+        data_tests: [not_null, non_negative]
+      - name: discount_amount
+        description: Amount given away through the discount, in USD.
+        data_tests: [not_null, non_negative]
+      - name: net_revenue
+        description: gross_revenue - discount_amount. This is the revenue figure used everywhere.
+        data_tests: [not_null, non_negative]
+
+  - name: fct_orders
+    description: One row per order with its totals and shipping information. All statuses included.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+      - name: store_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_stores')
+                field: store_id
+      - name: staff_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_staffs')
+                field: staff_id
+      - name: order_status
+        description: "1 Pending, 2 Processing, 3 Rejected, 4 Completed."
+      - name: order_status_label
+      - name: is_completed
+        data_tests: [not_null]
+      - name: order_date
+        data_tests: [not_null]
+      - name: order_month
+      - name: required_date
+        description: Delivery date promised to the customer.
+      - name: shipped_date
+        description: Actual shipping date, null while the order is not shipped.
+      - name: days_to_ship
+        description: Days between order and shipment. Null if not shipped.
+      - name: is_shipped_late
+        description: True when shipped after the required date. Null if not shipped.
+      - name: lines_count
+      - name: units_count
+      - name: gross_revenue
+        data_tests: [not_null, non_negative]
+      - name: discount_amount
+        data_tests: [not_null, non_negative]
+      - name: net_revenue
+        data_tests: [not_null, non_negative]
+
+  - name: dim_customers
+    description: Customers with their purchase history (completed orders only).
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: customer_name
+      - name: email
+      - name: phone
+        description: Null for most customers, the source rarely has it.
+      - name: city
+      - name: state
+      - name: zip_code
+      - name: first_order_date
+      - name: last_order_date
+      - name: completed_orders
+        data_tests: [not_null, non_negative]
+      - name: lifetime_net_revenue
+        data_tests: [not_null, non_negative]
+      - name: is_repeat_customer
+        description: True when the customer has more than one completed order.
+
+  - name: dim_products
+    description: Products with brand and category names.
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: product_name
+      - name: model_year
+      - name: list_price
+        description: Catalogue price in USD.
+      - name: brand_id
+      - name: brand_name
+        data_tests: [not_null]
+      - name: category_id
+      - name: category_name
+        data_tests: [not_null]
+
+  - name: dim_stores
+    description: The three Local Bike stores.
+    columns:
+      - name: store_id
+        data_tests: [unique, not_null]
+      - name: store_name
+        data_tests: [not_null]
+      - name: city
+      - name: state
+      - name: zip_code
+      - name: street
+      - name: phone
+      - name: email
+
+  - name: dim_staffs
+    description: Sales staff with their store and manager.
+    columns:
+      - name: staff_id
+        data_tests: [unique, not_null]
+      - name: staff_name
+      - name: email
+      - name: is_active
+      - name: store_id
+      - name: store_name
+      - name: manager_id
+      - name: manager_name

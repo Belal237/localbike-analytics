@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: int_sales__order_lines
+    description: >
+      Order lines joined to their order header, with gross revenue, discount amount
+      and net revenue computed once. All orders are kept whatever their status;
+      filtering on completed orders happens in the marts.

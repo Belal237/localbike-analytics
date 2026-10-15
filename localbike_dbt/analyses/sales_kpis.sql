@@ -1,5 +1,9 @@
+-- Headline numbers, completed orders only. Compile with `dbt compile` and run the SQL by hand.
+
 select
-  count(distinct order_id) as total_orders,
-  sum(quantity * list_price * (1 - discount)) as net_revenue,
-  avg(quantity * list_price * (1 - discount)) as avg_order_value
-from {{ ref('fct_sales') }}
+    count(*) as completed_orders,
+    sum(net_revenue) as net_revenue,
+    round(sum(net_revenue) / count(*), 2) as avg_order_value,
+    round(sum(discount_amount) / sum(gross_revenue), 4) as avg_discount_rate
+from {{ ref('fct_orders') }}
+where is_completed
