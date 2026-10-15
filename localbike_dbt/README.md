@@ -1,44 +1,26 @@
-# Local Bike Analytics Project
+# localbike_dbt
 
-This dbt project models the Local Bike dataset to support revenue optimization and operational analysis.
+dbt project for the Local Bike case. The context, the modelling choices and the findings are in the
+[main README](../README.md); this file is just a map of the folder.
 
-## Objective
-
-The goal is to transform the raw sales data into a clean, testable warehouse model that helps the operations team answer strategic questions such as:
-
-- Which store generates the most revenue?
-- Which product categories have the strongest margin and demand?
-- Which customers and products should be prioritized for campaigns?
-- How do revenues evolve over time and by store?
-
-## Dataset
-
-The raw CSV files are stored in the `seeds/` folder and correspond to the bicycle retail data of Local Bike.
-
-## dbt structure
-
-- `models/staging`: light cleaning and renaming of source data
-- `models/marts`: business-ready tables for dashboards and analysis
-- `tests`: schema and data quality tests
-
-## Local execution
-
-```bash
-cd localbike_dbt
-python3 -m pip install -r requirements.txt
-python3 -m dbt --version
-dbt seed --profiles-dir .
-dbt run --profiles-dir .
-dbt test --profiles-dir .
+```
+seeds/                 raw CSV exports, loaded with `dbt seed`
+models/
+  staging/             stg_*  one view per source table
+  intermediate/        int_sales__order_lines
+  marts/core/          facts and dimensions
+  marts/reporting/     rpt_* tables used by the dashboard
+macros/                clean_string, order_status_label
+tests/generic/         non_negative, unique_combination
+tests/singular/        cross-model consistency checks
+analyses/              ad hoc KPI query
 ```
 
-## Dashboard
-
-A lightweight dashboard can be generated from the same data with:
+Quick start (DuckDB):
 
 ```bash
-cd dashboard
-python3 localbike_dashboard.py
+pip install -r requirements.txt
+dbt build --profiles-dir .
 ```
 
-The resulting HTML file is saved in `dashboard/output/localbike_dashboard.html`.
+BigQuery: `dbt build --profiles-dir . --target bigquery` with `GCP_PROJECT_ID` set (see the main README).
