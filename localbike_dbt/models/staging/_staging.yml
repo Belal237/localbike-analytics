@@ -33,6 +33,7 @@ models:
           - accepted_values:
               arguments:
                 values: [1, 2, 3, 4]
+                quote: false
       - name: order_status_label
         data_tests: [not_null]
       - name: order_date

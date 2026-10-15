@@ -128,6 +128,13 @@ This creates the datasets `localbike_raw`, `localbike_staging`, `localbike_inter
 `localbike_core` and `localbike_reporting`. The `rpt_*` tables in `localbike_reporting` are the
 ones to connect to Looker Studio, Power BI or Metabase.
 
+I run it on the free BigQuery sandbox (no billing account). Two things I ran into:
+
+- tables in the sandbox expire after 60 days, so the build has to be re-run from time to time
+  or the dashboard goes blank;
+- `accepted_values` quotes values by default. DuckDB doesn't mind comparing an integer to `'1'`,
+  BigQuery does, hence the `quote: false` on `order_status`.
+
 ## Dashboard
 
 `dashboard/localbike_dashboard.py` builds a single HTML page from the DuckDB marts: headline KPIs,
