@@ -1,0 +1,139 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order, typed and with a readable status label.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: store_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+      - name: staff_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_staffs')
+                field: staff_id
+      - name: order_status
+        description: "Raw status code: 1 Pending, 2 Processing, 3 Rejected, 4 Completed."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+      - name: order_status_label
+        data_tests: [not_null]
+      - name: order_date
+        data_tests: [not_null]
+
+  - name: stg_order_items
+    description: One row per order line. Prices are the list price at the time of the order.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [order_id, item_id]
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_orders')
+                field: order_id
+      - name: product_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: quantity
+        data_tests: [not_null, non_negative]
+      - name: list_price
+        data_tests: [not_null, non_negative]
+      - name: discount_rate
+        description: Discount applied to the line, between 0 and 1 (0.07 = 7%).
+        data_tests: [not_null, non_negative]
+
+  - name: stg_customers
+    description: Customer master data. The literal 'NULL' strings of the export are turned into real nulls.
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+      - name: email
+        data_tests: [not_null]
+
+  - name: stg_products
+    description: Product catalogue.
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: brand_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_brands')
+                field: brand_id
+      - name: category_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_categories')
+                field: category_id
+      - name: list_price
+        data_tests: [not_null, non_negative]
+
+  - name: stg_brands
+    columns:
+      - name: brand_id
+        data_tests: [unique, not_null]
+
+  - name: stg_categories
+    columns:
+      - name: category_id
+        data_tests: [unique, not_null]
+
+  - name: stg_stores
+    columns:
+      - name: store_id
+        data_tests: [unique, not_null]
+
+  - name: stg_staffs
+    description: Sales staff. manager_id is null for the top manager only.
+    columns:
+      - name: staff_id
+        data_tests: [unique, not_null]
+      - name: store_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_stores')
+                field: store_id
+
+  - name: stg_stocks
+    description: Current stock snapshot, one row per store and product.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [store_id, product_id]
+    columns:
+      - name: product_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('stg_products')
+                field: product_id
+      - name: stock_quantity
+        data_tests: [not_null, non_negative]

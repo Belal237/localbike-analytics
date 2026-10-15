@@ -1,3 +1,6 @@
+# Two targets:
+#   dev (default) -> local DuckDB file, nothing to install besides requirements.txt
+#   bigquery      -> GCP project, auth through `gcloud auth application-default login`
 localbike:
   target: dev
   outputs:
@@ -6,3 +9,12 @@ localbike:
       path: "{{ env_var('DBT_DUCKDB_PATH', 'localbike.duckdb') }}"
       threads: 4
       schema: main
+
+    bigquery:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID', 'set-GCP_PROJECT_ID') }}"
+      dataset: localbike
+      location: "{{ env_var('BQ_LOCATION', 'EU') }}"
+      threads: 4
+      job_execution_timeout_seconds: 300
